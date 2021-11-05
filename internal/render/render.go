@@ -8,7 +8,6 @@ import (
 	"github.com/edenofjinx/go-bookings/internal/models"
 	"github.com/justinas/nosurf"
 	"html/template"
-	"log"
 	"net/http"
 	"path/filepath"
 )
@@ -45,25 +44,24 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmpl string, td *mod
 
 	t, ok := tc[tmpl]
 	if !ok {
-		return errors.New("cant get template from cache")
+		//log.Fatal("Could not get template from template cache")
+		return errors.New("could not get template from cache")
 	}
 
 	buf := new(bytes.Buffer)
 
 	td = AddDefaultData(td, r)
 
-	err := t.Execute(buf, td)
-	if err != nil {
-		log.Println("error on execute")
-		return err
-	}
+	_ = t.Execute(buf, td)
 
-	_, err = buf.WriteTo(w)
+	_, err := buf.WriteTo(w)
 	if err != nil {
 		fmt.Println("error writing template to browser", err)
 		return err
 	}
+
 	return nil
+
 }
 
 // CreateTemplateCache creates a template cache as a map

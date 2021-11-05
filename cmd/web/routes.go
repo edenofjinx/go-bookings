@@ -1,10 +1,10 @@
 package main
 
 import (
-	"github.com/go-chi/chi"
-	"github.com/go-chi/chi/middleware"
 	"github.com/edenofjinx/go-bookings/internal/config"
 	"github.com/edenofjinx/go-bookings/internal/handlers"
+	"github.com/go-chi/chi"
+	"github.com/go-chi/chi/middleware"
 	"net/http"
 )
 

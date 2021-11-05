@@ -6,10 +6,12 @@ import (
 	"github.com/alexedwards/scs/v2"
 	"github.com/edenofjinx/go-bookings/internal/config"
 	"github.com/edenofjinx/go-bookings/internal/handlers"
+	"github.com/edenofjinx/go-bookings/internal/helpers"
 	"github.com/edenofjinx/go-bookings/internal/models"
 	"github.com/edenofjinx/go-bookings/internal/render"
 	"log"
 	"net/http"
+	"os"
 	"time"
 )
 
@@ -17,6 +19,8 @@ const portNumber = ":8080"
 
 var app config.AppConfig
 var session *scs.SessionManager
+var infoLog *log.Logger
+var errorLog *log.Logger
 
 // main is the main function
 func main() {
@@ -25,7 +29,7 @@ func main() {
 		log.Fatal(err)
 	}
 
-	fmt.Println(fmt.Sprintf("Staring application on  http://localhost%s", portNumber))
+	fmt.Println(fmt.Sprintf("Staring application on port %s", portNumber))
 
 	srv := &http.Server{
 		Addr:    portNumber,
@@ -38,13 +42,18 @@ func main() {
 	}
 }
 
-// run gets server configs
 func run() error {
 	// what am I going to put in the session
 	gob.Register(models.Reservation{})
 
 	// change this to true when in production
 	app.InProduction = false
+
+	infoLog = log.New(os.Stdout, "INFO\t", log.Ldate|log.Ltime)
+	app.InfoLog = infoLog
+
+	errorLog = log.New(os.Stdout, "ERROR\t", log.Ldate|log.Ltime|log.Lshortfile)
+	app.ErrorLog = errorLog
 
 	// set up the session
 	session = scs.New()
@@ -66,7 +75,8 @@ func run() error {
 
 	repo := handlers.NewRepo(&app)
 	handlers.NewHandlers(repo)
-
 	render.NewTemplates(&app)
+	helpers.NewHelpers(&app)
+
 	return nil
 }

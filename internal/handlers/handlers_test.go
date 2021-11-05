@@ -25,50 +25,54 @@ var theTests = []struct {
 	{"majors-suite", "/majors-suite", "GET", []postData{}, http.StatusOK},
 	{"search-availability", "/search-availability", "GET", []postData{}, http.StatusOK},
 	{"contact", "/contact", "GET", []postData{}, http.StatusOK},
-	{"make-reservation", "/make-reservation", "GET", []postData{}, http.StatusOK},
-	{"post-search-availability", "/search-availability", "POST", []postData{
+	{"make-res", "/make-reservation", "GET", []postData{}, http.StatusOK},
+	{"post-search-availability", "/search-availability", "Post", []postData{
 		{key: "start", value: "2020-01-01"},
-		{key: "end", value: "2020-02-01"},
+		{key: "end", value: "2020-01-02"},
 	}, http.StatusOK},
-	{"post-search-availability-json", "/search-availability-json", "POST", []postData{
+	{"post-search-availability-json", "/search-availability-json", "Post", []postData{
 		{key: "start", value: "2020-01-01"},
-		{key: "end", value: "2020-02-01"},
+		{key: "end", value: "2020-01-02"},
 	}, http.StatusOK},
-	{"post-make-reservation", "/make-reservation", "POST", []postData{
-		{key: "first_name", value: "Julius"},
-		{key: "last_name", value: "Liaud"},
-		{key: "email", value: "j.liaudanskis@gmail.com"},
-		{key: "phone", value: "44455544"},
+	{"make-reservation", "/make-reservation", "Post", []postData{
+		{key: "first_name", value: "John"},
+		{key: "last_name", value: "Smith"},
+		{key: "email", value: "me@here.com"},
+		{key: "phone", value: "555-555-5555"},
 	}, http.StatusOK},
 }
 
 func TestHandlers(t *testing.T) {
 	routes := getRoutes()
-	testServer := httptest.NewTLSServer(routes)
-	defer testServer.Close()
 
-	for _, test := range theTests {
-		if test.method == "GET" {
-			response, err := testServer.Client().Get(testServer.URL + test.url)
+	ts := httptest.NewTLSServer(routes)
+	defer ts.Close()
+
+	for _, e := range theTests {
+		if e.method == "GET" {
+			resp, err := ts.Client().Get(ts.URL + e.url)
 			if err != nil {
 				t.Log(err)
 				t.Fatal(err)
 			}
-			if response.StatusCode != test.expectedStatusCode {
-				t.Errorf("for %s, expected %d but got %d", test.name, test.expectedStatusCode, response.StatusCode)
+
+			if resp.StatusCode != e.expectedStatusCode {
+				t.Errorf("for %s expected %d but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
 			}
 		} else {
 			values := url.Values{}
-			for _, parameter := range test.params{
-				values.Add(parameter.key, parameter.value)
+			for _, x := range e.params {
+				values.Add(x.key, x.value)
 			}
-			response, err := testServer.Client().PostForm(testServer.URL + test.url, values)
+
+			resp, err := ts.Client().PostForm(ts.URL+e.url, values)
 			if err != nil {
 				t.Log(err)
 				t.Fatal(err)
 			}
-			if response.StatusCode != test.expectedStatusCode {
-				t.Errorf("for %s, expected %d but got %d", test.name, test.expectedStatusCode, response.StatusCode)
+
+			if resp.StatusCode != e.expectedStatusCode {
+				t.Errorf("for %s expected %d but got %d", e.name, e.expectedStatusCode, resp.StatusCode)
 			}
 		}
 	}
