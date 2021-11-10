@@ -10,6 +10,7 @@ import (
 	"github.com/edenofjinx/go-bookings/internal/render"
 	"github.com/edenofjinx/go-bookings/internal/repository"
 	"github.com/edenofjinx/go-bookings/internal/repository/dbrepo"
+	"github.com/go-chi/chi"
 	"net/http"
 	"strconv"
 	"time"
@@ -237,4 +238,20 @@ func (m *Repository) ReservationSummary(w http.ResponseWriter, r *http.Request) 
 	render.Template(w, r, "reservation-summary.page.tmpl", &models.TemplateData{
 		Data: data,
 	})
+}
+
+func (m *Repository) ChooseRoom(w http.ResponseWriter, r *http.Request) {
+	roomId, err := strconv.Atoi(chi.URLParam(r, "id"))
+	if err != nil {
+		helpers.ServerError(w, err)
+		return
+	}
+	res, ok := m.App.Session.Get(r.Context(), "reservation").(models.Reservation)
+	if !ok {
+		helpers.ServerError(w, err)
+		return
+	}
+	res.RoomID = roomId
+	m.App.Session.Put(r.Context(), "reservation", res)
+	http.Redirect(w, r, "/make-reservation", http.StatusSeeOther)
 }
